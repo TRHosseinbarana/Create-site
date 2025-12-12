@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سایت ساز بصری</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Vazirmatn, Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* نوار ابزار */
+        .toolbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        /* بخش اصلی */
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* پالت المان‌ها */
+        .palette {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            border-left: 1px solid #ddd;
+            overflow-y: auto;
+        }
+        
+        .palette h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .element-item {
+            background: #ecf0f1;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px dashed #bdc3c7;
+        }
+        
+        .element-item:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        /* بوم طراحی */
+        .canvas {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 30px;
+            overflow: auto;
+            position: relative;
+            min-height: 600px;
+            border: 2px dashed #bdc3c7;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        
+        /* پنل تنظیمات */
+        .properties {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+        }
+        
+        .properties h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .property-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        /* المان‌های قابل کشیدن */
+        .draggable {
+            position: absolute;
+            cursor: move;
+            min-width: 100px;
+            min-height: 50px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+        
+        .draggable:hover {
+            border-color: #3498db;
+        }
+        
+        .draggable.selected {
+            border: 2px solid #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+        }
+        
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #3498db;
+            right: -5px;
+            bottom: -5px;
+            cursor: se-resize;
+            border-radius: 50%;
+        }
+        
+        /* دکمه‌های عمل */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #219653;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        
+        /* پنل کد */
+        .code-panel {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow: auto;
+            display: none;
+        }
+        
+        .code-panel.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="logo">
+            <i class="fas fa-paint-brush"></i> سایت ساز بصری
+        </div>
+        <div class="action-buttons">
+            <button class="btn-secondary" onclick="clearCanvas()">
+                <i class="fas fa-trash"></i> پاک کردن همه
+            </button>
+            <button class="btn-success" onclick="generateCode()">
+                <i class="fas fa-code"></i> تولید کد HTML
+            </button>
+            <button onclick="saveDesign()">
+                <i class="fas fa-save"></i> ذخیره طراحی
+            </button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- پالت المان‌ها -->
+        <div class="palette">
+            <h3><i class="fas fa-shapes"></i> المان‌ها</h3>
+            
+            <div class="element-item" draggable="true" data-type="heading">
+                <i class="fas fa-heading"></i><br>
+                عنوان
+            </div>
+            
+            <div class="element-item" draggable="true" data-type="paragraph">
+                <i class="fas fa-paragraph"></i><br>
+                متن
+            </div>
+            
+            <div class="element-item" draggable="true" data-type="button">
+                <i class="fas fa-square"></i><br>
+                دکمه
+            </div>
+            
+            <div class="element-item" draggable="true" data-type="image">
+                <i class="fas fa-image"></i><br>
+                تصویر
+            </div>
+            
+            <div class="element-item" draggable="true" data-type="input">
+                <i class="fas fa-edit"></i><br>
+                فیلد ورودی
+            </div>
+            
+            <div class="element-item" draggable="true" data-type="divider">
+                <i class="fas fa-minus"></i><br>
+                جداکننده
+            </div>
+            
+            <div class="element-item" draggable="true" data-type="box">
+                <i class="fas fa-square-full"></i><br>
+                جعبه
+            </div>
+        </div>
+        
+        <!-- بوم طراحی -->
+        <div class="canvas" id="canvas">
+            <p style="text-align: center; color: #95a5a6; margin-top: 50px;">
+                المان‌ها را از پالت سمت راست بکشید و اینجا رها کنید
+            </p>
+        </div>
+        
+        <!-- پنل تنظیمات -->
+        <div class="properties">
+            <h3><i class="fas fa-sliders-h"></i> تنظیمات المان</h3>
+            
+            <div id="propertyPanel">
+                <p style="color: #7f8c8d; text-align: center;">
+                    یک المان را انتخاب کنید
+                </p>
+            </div>
+            
+            <!-- پنل کد -->
+            <div class="code-panel" id="codePanel">
+                <pre id="generatedCode"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedElement = null;
+        let elementCount = 0;
+        
+        // المان‌های پالت
+        const paletteItems = document.querySelectorAll('.element-item');
+        paletteItems.forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('type', this.getAttribute('data-type'));
+            });
+        });
+        
+        // بوم طراحی
+        const canvas = document.getElementById('canvas');
+        
+        canvas.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        canvas.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            const x = e.clientX - canvas.getBoundingClientRect().left;
+            const y = e.clientY - canvas.getBoundingClientRect().top;
+            
+            createElement(type, x, y);
+        });
+        
+        // ایجاد المان جدید
+        function createElement(type, x, y) {
+            elementCount++;
+            const id = `element_${elementCount}`;
+            
+            let element;
+            
+            switch(type) {
+                case 'heading':
+                    element = document.createElement('div');
+                    element.innerHTML = `<h2>عنوان جدید ${elementCount}</h2>`;
+                    element.style.width = '300px';
+                    break;
+                    
+                case 'paragraph':
+                    element = document.createElement('div');
+                    element.innerHTML = `<p>این یک متن نمونه است. روی من دوبار کلیک کنید تا متن را تغییر دهید.</p>`;
+                    element.style.width = '400px';
+                    break;
+                    
+                case 'button':
+                    element = document.createElement('button');
+                    element.textContent = `دکمه ${elementCount}`;
+                    element.style.padding = '12px 24px';
+                    element.style.background = '#3498db';
+                    element.style.color = 'white';
+                    element.style.border = 'none';
+                    element.style.borderRadius = '5px';
+                    element.style.cursor = 'pointer';
+                    break;
+                    
+                case 'image':
+                    element = document.createElement('div');
+                    element.innerHTML = `
+                        <div style="text-align: center;">
+                            <img src="https://via.placeholder.com/300x200/3498db/ffffff?text=تصویر+${elementCount}" 
+                                 alt="تصویر" style="max-width: 100%; border-radius: 5px;">
+                            <p style="margin-top: 10px; color: #7f8c8d;">تصویر ${elementCount}</p>
+                        </div>
+                    `;
+                    element.style.width = '300px';
+                    break;
+                    
+                case 'input':
+                    element = document.createElement('div');
+                    element.innerHTML = `
+                        <label for="${id}_input">فیلد ورودی:</label>
+                        <input type="text" id="${id}_input" placeholder="متن خود را وارد کنید">
+                    `;
+                    element.style.width = '300px';
+                    break;
+                    
+                case 'divider':
+                    element = document.createElement('hr');
+                    element.style.width = '400px';
+                    element.style.border = '1px solid #ddd';
+                    break;
+                    
+                case 'box':
+                    element = document.createElement('div');
+                    element.innerHTML = `<div style="padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: center;">جعبه ${elementCount}</div>`;
+                    element.style.width = '200px';
+                    break;
+            }
+            
+            element.className = 'draggable';
+            element.id = id;
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            
+            // قابلیت کشیدن
+            makeDraggable(element);
+            
+            // قابلیت تغییر متن با دوبار کلیک
+            element.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                if (this.querySelector('h2, p, button, div div')) {
+                    const text = prompt('متن جدید را وارد کنید:', this.textContent);
+                    if (text !== null) {
+                        if (this.querySelector('h2')) {
+                            this.querySelector('h2').textContent = text;
+                        } else if (this.querySelector('p')) {
+                            this.querySelector('p').textContent = text;
+                        } else if (this.tagName === 'BUTTON') {
+                            this.textContent = text;
+                        } else if (this.querySelector('div div')) {
+                            this.querySelector('div div').textContent = text;
+                        }
+                        updatePropertiesPanel(this);
+                    }
+                }
+            });
+            
+            // انتخاب المان
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectElement(this);
+            });
+            
+            canvas.appendChild(element);
+            selectElement(element);
+        }
+        
+        // قابلیت کشیدن المان‌ها
+        function makeDraggable(element) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            element.onmousedown = dragMouseDown;
+            
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                
+                // اگر روی هندل تغییر سایز کلیک شده
+                if (e.target.classList.contains('resize-handle')) {
+                    initResize(e);
+                    return;
+                }
+                
+                // گرفتن موقعیت کلیک ماوس
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+                
+                // جلوگیری از انتخاب متن
+                document.onselectstart = function() { return false; };
+            }
+            
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                
+                // محاسبه موقعیت جدید
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                
+                // تنظیم موقعیت جدید
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+            
+            function closeDragElement() {
+                // توقف کشیدن
+                document.onmouseup = null;
+                document.onmousemove = null;
+                document.onselectstart = null;
+            }
+        }
+        
+        // انتخاب المان
+        function selectElement(element) {
+            // حذف انتخاب از همه المان‌ها
+            document.querySelectorAll('.draggable').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // انتخاب المان جدید
+            element.classList.add('selected');
+            selectedElement = element;
+            
+            // نمایش پنل تنظیمات
+            updatePropertiesPanel(element);
+        }
+        
+        // به‌روزرسانی پنل تنظیمات
+        function updatePropertiesPanel(element) {
+            if (!element) return;
+            
+            const type = element.getAttribute('data-type') || 
+                        (element.querySelector('h2') ? 'heading' : 
+                         element.querySelector('p') ? 'paragraph' : 
+                         element.tagName === 'BUTTON' ? 'button' : 
+                         element.querySelector('img') ? 'image' : 
+                         element.querySelector('input') ? 'input' : 
+                         element.tagName === 'HR' ? 'divider' : 'box');
+            
+            let content = '';
+            if (element.querySelector('h2')) {
+                content = element.querySelector('h2').textContent;
+            } else if (element.querySelector('p')) {
+                content = element.querySelector('p').textContent;
+            } else if (element.tagName === 'BUTTON') {
+                content = element.textContent;
+            } else if (element.querySelector('div div')) {
+                content = element.querySelector('div div').textContent;
+            }
+            
+            const color = element.style.backgroundColor || 
+                         (element.querySelector('button') ? element.querySelector('button').style.backgroundColor : '');
+            
+            const fontSize = element.style.fontSize || 
+                           (element.querySelector('h2') ? element.querySelector('h2').style.fontSize : 
+                            element.querySelector('p') ? element.querySelector('p').style.fontSize : '');
+            
+            const fontFamily = element.style.fontFamily || 
+                             (element.querySelector('h2') ? element.querySelector('h2').style.fontFamily : 
+                              element.querySelector('p') ? element.querySelector('p').style.fontFamily : '');
+            
+            const propertyPanel = document.getElementById('propertyPanel');
+            propertyPanel.innerHTML = `
+                <div class="property-group">
+                    <label>نوع المان:</label>
+                    <input type="text" value="${type}" disabled>
+                </div>
+                
+                <div class="property-group">
+                    <label>محتوا:</label>
+                    <textarea id="propContent" rows="3">${content}</textarea>
+                    <button onclick="updateElementProperty('content')">اعمال تغییر متن</button>
+                </div>
+                
+                <div class="property-group">
+                    <label>عرض (px):</label>
+                    <input type="number" id="propWidth" value="${parseInt(element.style.width) || 200}">
+                    <button onclick="updateElementProperty('width')">اعمال عرض</button>
+                </div>
+                
+                <div class="property-group">
+                    <label>موقعیت X:</label>
+                    <input type="number" id="propLeft" value="${parseInt(element.style.left) || 0}">
+                    <button onclick="updateElementProperty('left')">اعمال موقعیت</button>
+                </div>
+                
+                <div class="property-group">
+                    <label>موقعیت Y:</label>
+                    <input type="number" id="propTop" value="${parseInt(element.style.top) || 0}">
+                    <button onclick="updateElementProperty('top')">اعمال موقعیت</button>
+                </div>
+                
+                <div class="property-group">
+                    <label>رنگ پس‌زمینه:</label>
+                    <div class="color-picker">
+                        <div class="color-option" style="background:#3498db;" onclick="setColor('#3498db')"></div>
+                        <div class="color-option" style="background:#e74c3c;" onclick="setColor('#e74c3c')"></div>
+                        <div class="color-option" style="background:#2ecc71;" onclick="setColor('#2ecc71')"></div>
+                        <div class="color-option" style="background:#f1c40f;" onclick="setColor('#f1c40f')"></div>
+                        <div class="color-option" style="background:#9b59b6;" onclick="setColor('#9b59b6')"></div>
+                        <div class="color-option" style="background:#34495e;" onclick="setColor('#34495e')"></div>
+                        <div class="color-option" style="background:#ffffff; border:1px solid #ccc;" onclick="setColor('#ffffff')"></div>
+                        <div class="color-option" style="background:#000000;" onclick="setColor('#000000')"></div>
+                    </div>
+                    <input type="color" id="propColor" value="${color || '#3498db'}" style="width: 100%; height: 40px;">
+                    <button onclick="updateElementProperty('color')">اعمال رنگ</button>
+                </div>
+                
+                <div class="property-group">
+                    <label>اندازه فونت:</label>
+                    <select id="propFontSize">
+                        <option value="12px" ${fontSize === '12px' ? 'selected' : ''}>کوچک (12px)</option>
+                        <option value="16px" ${fontSize === '16px' || !fontSize ? 'selected' : ''}>معمولی (16px)</option>
+                        <option value="24px" ${fontSize === '24px' ? 'selected' : ''}>متوسط (24px)</option>
+                        <option value="32px" ${fontSize === '32px' ? 'selected' : ''}>بزرگ (32px)</option>
+                        <option value="48px" ${fontSize === '48px' ? 'selected' : ''}>خیلی بزرگ (48px)</option>
+                    </select>
+                    <button onclick="updateElementProperty('fontSize')">اعمال اندازه فونت</button>
+                </div>
+                
+                <div class="property-group">
+                    <label>نوع فونت:</label>
+                    <select id="propFontFamily">
+                        <option value="Vazirmatn, sans-serif" ${fontFamily.includes('Vazirmatn') ? 'selected' : ''}>Vazirmatn (فارسی)</option>
+                        <option value="Segoe UI, Tahoma" ${!fontFamily || fontFamily.includes('Segoe') ? 'selected' : ''}>Segoe UI</option>
+                        <option value="Arial, sans-serif" ${fontFamily.includes('Arial') ? 'selected' : ''}>Arial</option>
+                        <option value="'Courier New', monospace" ${fontFamily.includes('Courier') ? 'selected' : ''}>Courier New</option>
+                        <option value="Tahoma, Geneva, sans-serif" ${fontFamily.includes('Tahoma') ? 'selected' : ''}>Tahoma</option>
+                    </select>
+                    <button onclick="updateElementProperty('fontFamily')">اعمال فونت</button>
+                </div>
+                
+                <div class="property-group">
+                    <button class="btn-secondary" onclick="deleteSelectedElement()">
+                        <i class="fas fa-trash"></i> حذف این المان
+                    </button>
+                </div>
+            `;
+        }
+        
+        // به‌روزرسانی خصوصیات المان
+        function updateElementProperty(property) {
+            if (!selectedElement) return;
+            
+            switch(property) {
+                case 'content':
+                    const newContent = document.getElementById('propContent').value;
+                    if (selectedElement.querySelector('h2')) {
+                        selectedElement.querySelector('h2').textContent = newContent;
+                    } else if (selectedElement.querySelector('p')) {
+                        selectedElement.querySelector('p').textContent = newContent;
+                    } else if (selectedElement.tagName === 'BUTTON') {
+                        selectedElement.textContent = newContent;
+                    } else if (selectedElement.querySelector('div div')) {
+                        selectedElement.querySelector('div div').textContent = newContent;
+                    }
+                    break;
+                    
+                case 'width':
+                    const width = document.getElementById('propWidth').value + 'px';
+                    selectedElement.style.width = width;
+                    break;
+                    
+                case 'left':
+                    const left = document.getElementById('propLeft').value + 'px';
+                    selectedElement.style.left = left;
+                    break;
+                    
+                case 'top':
+                    const top = document.getElementById('propTop').value + 'px';
+                    selectedElement.style.top = top;
+                    break;
+                    
+                case 'color':
+                    const color = document.getElementById('propColor').value;
+                    if (selectedElement.tagName === 'BUTTON') {
+                        selectedElement.style.backgroundColor = color;
+                    } else {
+                        selectedElement.style.backgroundColor = color;
+                    }
+                    break;
+                    
+                case 'fontSize':
+                    const fontSize = document.getElementById('propFontSize').value;
+                    if (selectedElement.querySelector('h2')) {
+                        selectedElement.querySelector('h2').style.fontSize = fontSize;
+                    } else if (selectedElement.querySelector('p')) {
+                        selectedElement.querySelector('p').style.fontSize = fontSize;
+                    } else if (selectedElement.tagName === 'BUTTON') {
+                        selectedElement.style.fontSize = fontSize;
+                    }
+                    break;
+                    
+                case 'fontFamily':
+                    const fontFamily = document.getElementById('propFontFamily').value;
+                    if (selectedElement.querySelector('h2')) {
+                        selectedElement.querySelector('h2').style.fontFamily = fontFamily;
+                    } else if (selectedElement.querySelector('p')) {
+                        selectedElement.querySelector('p').style.fontFamily = fontFamily;
+                    } else if (selectedElement.tagName === 'BUTTON') {
+                        selectedElement.style.fontFamily = fontFamily;
+                    }
+                    break;
+            }
+        }
+        
+        // تنظیم رنگ
+        function setColor(color) {
+            document.getElementById('propColor').value = color;
+            updateElementProperty('color');
+        }
+        
+        // حذف المان انتخاب شده
+        function deleteSelectedElement() {
+            if (selectedElement && confirm('آیا مطمئن هستید که می‌خواهید این المان را حذف کنید؟')) {
+                selectedElement.remove();
+                selectedElement = null;
+                document.getElementById('propertyPanel').innerHTML = `
+                    <p style="color: #7f8c8d; text-align: center;">
+                        یک المان را انتخاب کنید
+                    </p>
+                `;
+            }
+        }
+        
+        // پاک کردن کل بوم
+        function clearCanvas() {
+            if (confirm('آیا مطمئن هستید که می‌خواهید همه المان‌ها را پاک کنید؟')) {
+                document.querySelectorAll('.draggable').forEach(el => el.remove());
+                selectedElement = null;
+                document.getElementById('propertyPanel').innerHTML = `
+                    <p style="color: #7f8c8d; text-align: center;">
+                        یک المان را انتخاب کنید
+                    </p>
+                `;
+            }
+        }
+        
+        // تولید کد HTML
+        function generateCode() {
+            const elements = document.querySelectorAll('.draggable');
+            let htmlCode = `<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سایت طراحی شده</title>
+    <style>
+        body {
+            font-family: Vazirmatn, Tahoma, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">\n`;
+            
+            elements.forEach((el, index) => {
+                const style = `position: absolute; left: ${el.style.left}; top: ${el.style.top}; width: ${el.style.width || 'auto'};`;
+                htmlCode += `        <!-- المان ${index + 1} -->\n`;
+                htmlCode += `        <div style="${style}">\n`;
+                htmlCode += `            ${el.innerHTML.replace(/\n/g, '\n            ')}\n`;
+                htmlCode += `        </div>\n\n`;
+            });
+            
+            htmlCode += `    </div>
+</body>
+</html>`;
+            
+            document.getElementById('generatedCode').textContent = htmlCode;
+            document.getElementById('codePanel').classList.add('show');
+            
+            // کپی خودکار به کلیپ‌بورد
+            navigator.clipboard.writeText(htmlCode).then(() => {
+                alert('کد HTML تولید و در کلیپ‌بورد کپی شد!');
+            });
+        }
+        
+        // ذخیره طراحی
+        function saveDesign() {
+            const designData = {
+                elements: []
+            };
+            
+            document.querySelectorAll('.draggable').forEach(el => {
+                designData.elements.push({
+                    id: el.id,
+                    type: el.getAttribute('data-type') || 'custom',
+                    html: el.innerHTML,
+                    style: {
+                        left: el.style.left,
+                        top: el.style.top,
+                        width: el.style.width,
+                        backgroundColor: el.style.backgroundColor,
+                        fontSize: el.style.fontSize
+                    }
+                });
+            });
+            
+            localStorage.setItem('webDesign', JSON.stringify(designData));
+            alert('طراحی در حافظه مرورگر ذخیره شد!');
+        }
+        
+        // بارگذاری طراحی ذخیره شده
+        function loadDesign() {
+            const saved = localStorage.getItem('webDesign');
+            if (saved) {
+                if (confirm('یک طراحی ذخیره شده وجود دارد. آیا می‌خواهید آن را بارگذاری کنید؟')) {
+                    const designData = JSON.parse(saved);
+                    
+                    // پاک کردن المان‌های فعلی
+                    document.querySelectorAll('.draggable').forEach(el => el.remove());
+                    
+                    // ایجاد المان‌های ذخیره شده
+                    designData.elements.forEach(item => {
+                        const element = document.createElement('div');
+                        element.id = item.id;
+                        element.className = 'draggable';
+                        element.innerHTML = item.html;
+                        
+                        // اعمال استایل‌ها
+                        Object.keys(item.style).forEach(prop => {
+                            if (item.style[prop]) {
+                                element.style[prop] = item.style[prop];
+                            }
+                        });
+                        
+                        // قابلیت کشیدن
+                        makeDraggable(element);
+                        
+                        // انتخاب المان
+                        element.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            selectElement(this);
+                        });
+                        
+                        canvas.appendChild(element);
+                    });
+                }
+            }
+        }
+        
+        // بارگذاری طراحی هنگام شروع
+        window.addEventListener('load', loadDesign);
+        
+        // کلیک روی بوم برای لغو انتخاب
+        canvas.addEventListener('click', function(e) {
+            if (e.target === canvas) {
+                document.querySelectorAll('.draggable').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                selectedElement = null;
+                document.getElementById('propertyPanel').innerHTML = `
+                    <p style="color: #7f8c8d; text-align: center;">
+                        یک المان را انتخاب کنید
+                    </p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
